@@ -4,7 +4,7 @@ import numpy as np
 import codecs
 import regex
 import random
-
+import math
 
 def load_vocab(language):
     assert language in ["cn", "en"]
@@ -81,6 +81,7 @@ def load_data(data_type):
     ]
 
     X, Y, Sources, Targets = create_data(cn_sents, en_sents)
+
     return X, Y, Sources, Targets
 
 

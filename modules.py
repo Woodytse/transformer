@@ -5,7 +5,7 @@ import numpy as np
 from torch.nn.parameter import Parameter
 
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
+# device = torch.device("cpu")
 
 class embedding(nn.Module):
     def __init__(self, vocab_size, num_units, zeros_pad=True, scale=True):

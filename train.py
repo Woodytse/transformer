@@ -3,7 +3,8 @@ import subprocess
 import sys
 import tempfile
 import time
-
+import datetime
+import pickle
 import numpy as np
 import torch
 import torch.optim as optim
@@ -21,11 +22,11 @@ from data_load import (
 )
 from hyperparams import Hyperparams as hp
 from util import get_logger
-
+import logging
 # device
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+# device= torch.device("cpu")
 print("Device: {}".format(device))
-
 # log
 if not os.path.exists("log"):
     os.mkdir("log")
@@ -33,8 +34,24 @@ if not os.path.exists("log"):
 log_path = os.path.join(
     "log", "log-" + time.strftime("%Y-%m-%d-%H-%M-%S", time.localtime()) + ".txt"
 )
-logger = get_logger(log_path)
 
+logger = logging.getLogger('log')
+logger.setLevel(logging.DEBUG)
+while logger.hasHandlers():
+    for i in logger.handlers:
+        logger.removeHandler(i)
+formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+if True:
+    fh = logging.FileHandler(log_path,encoding='utf-8')
+    fh.setLevel(logging.DEBUG)
+    fh.setFormatter(formatter)
+    logger.addHandler(fh)
+# console log
+formatter = logging.Formatter('%(message)s')
+ch = logging.StreamHandler(sys.stdout)
+ch.setLevel(logging.DEBUG)
+ch.setFormatter(formatter)
+logger.addHandler(ch)
 
 # validation script
 def bleu_script(f):
@@ -42,16 +59,23 @@ def bleu_script(f):
     cmd = "{eval_script} {refs} {hyp}".format(
         eval_script=hp.eval_script, refs=ref_stem, hyp=f
     )
-    p = subprocess.Popen(cmd.split(), stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    # print('cmd:',cmd)
+    cmd_list = cmd.split()
+    cmd_list.insert(0, 'C:\Program Files\Git\\bin\\bash.exe')
+    p = subprocess.Popen(cmd_list,shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
+    logger.info('Blue Output:'+str(float(out)))
     if p.returncode > 0:
-        sys.stderr.write(err)
+        sys.stderr.write(str(err))
+        logger.info('Blue Error:'+str(err))
         sys.exit(1)
     bleu = float(out)
+    logger.info('Blue Output:' + str(bleu))
     return bleu
 
 
-def train():
+def train(path = None):
+
     paras = [["Parameters", "Value"]]
     for key, value in hp.__dict__.items():
         if "__" not in key:
@@ -80,6 +104,10 @@ def train():
     # calc total batch count
     num_batch = len(X) // hp.batch_size
     model = AttModel(hp, enc_voc, dec_voc)
+    if path is not None:
+        model.load_state_dict(torch.load(path))
+        logger.info('Load model from '+path)
+
     model.train()
     model.to(device)
     torch.backends.cudnn.benchmark = True  # may speed up Forward propagation
@@ -127,6 +155,7 @@ def train():
                         acc.data.item(),
                     )
                 )
+        # logger.info('This epoch end at:'+str(datetime.datetime.now()))
 
         if epoch % hp.check_frequency == 0 or epoch == hp.num_epochs:
             checkpoint_path = hp.model_dir + "/model_epoch_%02d" % epoch + ".pth"
@@ -186,9 +215,14 @@ def evaluate(model, epoch, writer, score_list):
     sampling_result.append(["Source", " ".join(idx2cn[idx] for idx in X[ix]).split("</S>")[0].strip()])
     sampling_result.append(["Target", Targets[ix]])
     sampling_result.append(["Predict", " ".join(idx2en[idx] for idx in preds[ix]).split("</S>")[0].strip()])
+    #logger.info('======data=====')
+    #logger.info(str(sampling_result))
+    #fw = open('models/sampling_results.txt',"wb")
+    #pickle.dump(sampling_result,fw,-1) #,'model/sampling_result')
     sampling_table = AsciiTable(sampling_result)
     logger.info("===========sampling START===========")
-    logger.info("\n" + str(sampling_table.table))
+
+    logger.info("\n"+str(sampling_table.table))
     logger.info("===========sampling DONE===========")
     # Calculate BLEU score
     hypotheses = [" ".join(x) for x in hypotheses]
@@ -223,4 +257,7 @@ def evaluate(model, epoch, writer, score_list):
 
 
 if __name__ == "__main__":
+    # for _ in range(6):
+    #     path =r"D:\Project\transformer-pytorch\models\model_epoch_50.pth"
+    #     train(path)
     train()

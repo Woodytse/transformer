@@ -1,0 +1,10 @@
+/corpora/*.zip
+/corpora/cn_test_tokenized.txt
+/corpora/en_test_tokenized.txt
+/corpora/cn_train_tokenized.txt
+/corpora/en_train_tokenized.txt
+
+/models/*
+
+/log/*
+/runs/*
