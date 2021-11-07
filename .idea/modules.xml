@@ -2,6 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
+      <module fileurl="file://$PROJECT_DIR$/../../HKU/FTDA/COMP7404 Computational Intelligence and Machine Learning/Assignment/a3/.idea/a3.iml" filepath="$PROJECT_DIR$/../../HKU/FTDA/COMP7404 Computational Intelligence and Machine Learning/Assignment/a3/.idea/a3.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../tensor2tensor/.idea/tensor2tensor.iml" filepath="$PROJECT_DIR$/../tensor2tensor/.idea/tensor2tensor.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/transformer-pytorch.iml" filepath="$PROJECT_DIR$/.idea/transformer-pytorch.iml" />
     </modules>
   </component>

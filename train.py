@@ -141,7 +141,7 @@ def train(path = None):
                 )
 
             if (
-                current_batches % 10 == 0
+                current_batches % 100 == 0
                 or current_batches == 0
                 or current_batches == num_batch
             ):
@@ -228,9 +228,12 @@ def evaluate(model, epoch, writer, score_list):
     hypotheses = [" ".join(x) for x in hypotheses]
 
     p_tmp = tempfile.mktemp()
-    f_tmp = open(p_tmp, "w")
-    f_tmp.write("\n".join(hypotheses))
-    f_tmp.close()
+    f_tmp = open(p_tmp, "w", encoding="utf-8")
+    try:
+        f_tmp.write("\n".join(hypotheses))
+        f_tmp.close()
+    except:
+        logger.info('=======================UnicodeEncodeError========================')
     multi_bleu = bleu_script(p_tmp)
     bleu_1_gram = bleu(hypotheses, list_of_refs, smoothing=True, n=1)
     bleu_2_gram = bleu(hypotheses, list_of_refs, smoothing=True, n=2)
@@ -257,7 +260,9 @@ def evaluate(model, epoch, writer, score_list):
 
 
 if __name__ == "__main__":
-    # for _ in range(6):
-    #     path =r"D:\Project\transformer-pytorch\models\model_epoch_50.pth"
-    #     train(path)
-    train()
+    path = r"D:\Project\transformer-pytorch\models\model_epoch_10.pth"
+    for _ in range(2):
+
+        train(path)
+        path = r"D:\Project\transformer-pytorch\models\model_epoch_50.pth"
+    #train()
